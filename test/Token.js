@@ -17,24 +17,18 @@ describe('Token', () => {
   const totalSupply = 1_000_000;
   const amount = tokens(100);
 
-  // beforeEach(async () => {
-  //   const Token = await ethers.getContractFactory('Token');
-  //   token = await Token.deploy();
-  // });
+  beforeEach(async () => {
+    const Token = await ethers.getContractFactory('Token');
+    token = await Token.deploy(name, symbol, totalSupply);
+    await token.deployed();
+
+    accounts = await ethers.getSigners()
+    deployer = accounts[0];
+    receiver = accounts[1];
+    exchange = accounts[2];
+  });
 
   describe('Deployment', () => {
-    it('deploys', async () => {
-      const Token = await ethers.getContractFactory('Token');
-      token = await Token.deploy(name, symbol, totalSupply);
-      await token.deployed();
-
-      accounts = await ethers.getSigners()
-      deployer = accounts[0];
-      console.log(deployer)
-      receiver = accounts[1];
-      exchange = accounts[2];
-    });
-
     it('has correct name', async () => {
       expect(await token.name()).to.equal(name);
     });
@@ -115,6 +109,58 @@ describe('Token', () => {
     describe('Failure', () => {
       it('rejects invalid spenders', async () => {
         await expect(token.connect(deployer).approve('0x0000000000000000000000000000000000000000', amount)).to.be.reverted;
+      });
+    });
+  });
+
+  describe('Delegated Token Transfers', () => {
+    beforeEach(async () => {
+      transaction = await token.connect(deployer).approve(exchange.address, amount);
+      result = await transaction.wait();
+    });
+
+    describe('Success', () => {
+      beforeEach(async () => {
+        transaction = await token.connect(exchange).transferFrom(deployer.address, receiver.address, amount);
+        result = await transaction.wait();
+      });
+
+      it('tranfers token balances', async () => {
+        expect(await token.balanceOf(deployer.address)).to.be.equal(tokens(999900));
+        expect(await token.balanceOf(receiver.address)).to.be.equal(amount);
+      });
+
+      it('resets the allowance', async () => {
+        expect(await token.allowance(deployer.address, exchange.address)).to.be.equal(0);
+
+        transaction = await token.connect(deployer).approve(exchange.address, amount);
+        await transaction.wait();
+
+        transaction = await token.connect(exchange).transferFrom(deployer.address, receiver.address, tokens(50));
+        await transaction.wait();
+
+        expect(await token.allowance(deployer.address, exchange.address)).to.be.equal(tokens(50));
+
+        transaction = await token.connect(exchange).transferFrom(deployer.address, receiver.address, tokens(50));
+        await transaction.wait();
+
+        expect(await token.allowance(deployer.address, exchange.address)).to.be.equal(0);
+      });
+
+      it('emits a transfer event', async () => {
+        const { event, args: { _from, _to, _value } } = result.events[0];
+
+        expect(event).to.equal('Transfer');
+        expect(_from).to.equal(deployer.address);
+        expect(_to).to.equal(receiver.address);
+        expect(_value).to.equal(amount);
+      });
+    });
+
+    describe('Failure', () => {
+      it('rejects higher than allowance', async () => {
+        const invalidAmount = tokens(1000);
+        await expect(token.connect(exchange).transferFrom(deployer.address, receiver.address, invalidAmount)).to.be.reverted;
       });
     });
   });
