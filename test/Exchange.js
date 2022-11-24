@@ -159,7 +159,9 @@ describe('Exchange', () => {
     });
 
     describe('Failure', () => {
-
+      it('rejects with no balance', async () => {
+        await expect(exchange.connect(user1).makeOrder(token2.address, tokens(1), token1.address, tokens(1))).to.be.reverted;
+      });
     });
   });
 });

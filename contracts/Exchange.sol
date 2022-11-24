@@ -75,8 +75,9 @@ contract Exchange {
         address _tokenGive,
         uint256 _amountGive
     ) public {
-        orderCount = orderCount + 1;
+        require(tokens[_tokenGive][msg.sender] >= _amountGive);
 
+        orderCount = orderCount + 1;
         orders[orderCount] = _Order(
             orderCount,
             msg.sender,
