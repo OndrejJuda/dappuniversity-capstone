@@ -14,6 +14,7 @@ contract Exchange {
 
     mapping(uint256 => _Order) public orders;
     mapping(uint256 => bool) public ordersCancelled;
+    mapping(uint256 => bool) public ordersFilled;
 
     struct _Order {
         uint256 id;
@@ -52,6 +53,17 @@ contract Exchange {
     event Cancel(
         uint256 _id,
         address _user,
+        address _tokenGet,
+        uint256 _amountGet,
+        address _tokenGive,
+        uint256 _amountGive,
+        uint256 _timestamp
+    );
+
+    event Trade(
+        uint256 _id,
+        address _user,
+        address _creator,
         address _tokenGet,
         uint256 _amountGet,
         address _tokenGive,
@@ -113,8 +125,11 @@ contract Exchange {
     function cancelOrder(uint256 _id) public {
         _Order storage _order = orders[_id];
 
-        require(_order.id == _id, 'invalid id');
-        require(address(_order.user) == msg.sender, 'order can be only canceled by owner');
+        require(_order.id == _id, "invalid id");
+        require(
+            address(_order.user) == msg.sender,
+            "order can be only canceled by owner"
+        );
 
         ordersCancelled[_id] = true;
 
@@ -125,6 +140,64 @@ contract Exchange {
             _order.amountGet,
             _order.tokenGive,
             _order.amountGive,
+            block.timestamp
+        );
+    }
+
+    function fillOrder(uint256 _id) public {
+        _Order storage _order = orders[_id];
+
+        require(_order.id == _id, "invalid id");
+
+        _trade(
+            _order.id,
+            _order.user,
+            _order.tokenGet,
+            _order.amountGet,
+            _order.tokenGive,
+            _order.amountGive
+        );
+    }
+
+    function _trade(
+        uint256 _orderId,
+        address _user,
+        address _tokenGet,
+        uint256 _amountGet,
+        address _tokenGive,
+        uint256 _amountGive
+    ) internal {
+        // Calculate fee
+        uint256 _feeAmount = (_amountGet * feePercent) / 100;
+
+        // Transfer token from order filler and charge him fee on top of transfered amount
+        tokens[_tokenGet][msg.sender] =
+            tokens[_tokenGet][msg.sender] -
+            (_amountGet + _feeAmount);
+
+        tokens[_tokenGet][_user] = tokens[_tokenGet][_user] + _amountGet;
+
+        // Charge fee
+        tokens[_tokenGet][feeAccount] =
+            tokens[_tokenGet][feeAccount] +
+            _feeAmount;
+
+        // Transfer token from order creator
+        tokens[_tokenGive][_user] = tokens[_tokenGive][_user] - _amountGive;
+
+        tokens[_tokenGive][msg.sender] =
+            tokens[_tokenGive][msg.sender] +
+            _amountGive;
+
+        // Emit trade event
+        emit Trade(
+            _orderId,
+            msg.sender,
+            _user,
+            _tokenGet,
+            _amountGet,
+            _tokenGive,
+            _amountGive,
             block.timestamp
         );
     }
