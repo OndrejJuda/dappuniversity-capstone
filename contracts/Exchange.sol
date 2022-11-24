@@ -13,6 +13,7 @@ contract Exchange {
     mapping(address => mapping(address => uint256)) public tokens;
 
     mapping(uint256 => _Order) public orders;
+    mapping(uint256 => bool) public ordersCancelled;
 
     struct _Order {
         uint256 id;
@@ -39,6 +40,16 @@ contract Exchange {
     );
 
     event Order(
+        uint256 _id,
+        address _user,
+        address _tokenGet,
+        uint256 _amountGet,
+        address _tokenGive,
+        uint256 _amountGive,
+        uint256 _timestamp
+    );
+
+    event Cancel(
         uint256 _id,
         address _user,
         address _tokenGet,
@@ -95,6 +106,25 @@ contract Exchange {
             _amountGet,
             _tokenGive,
             _amountGive,
+            block.timestamp
+        );
+    }
+
+    function cancelOrder(uint256 _id) public {
+        _Order storage _order = orders[_id];
+
+        require(_order.id == _id, 'invalid id');
+        require(address(_order.user) == msg.sender, 'order can be only canceled by owner');
+
+        ordersCancelled[_id] = true;
+
+        emit Cancel(
+            _order.id,
+            msg.sender,
+            _order.tokenGet,
+            _order.amountGet,
+            _order.tokenGive,
+            _order.amountGive,
             block.timestamp
         );
     }
