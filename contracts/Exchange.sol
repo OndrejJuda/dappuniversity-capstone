@@ -100,7 +100,7 @@ contract Exchange {
     ) public {
         require(tokens[_tokenGive][msg.sender] >= _amountGive);
 
-        orderCount = orderCount + 1;
+        orderCount++;
         orders[orderCount] = _Order(
             orderCount,
             msg.sender,
@@ -145,6 +145,10 @@ contract Exchange {
     }
 
     function fillOrder(uint256 _id) public {
+        require(_id <= orderCount && _id > 0, "order doesn't exist");
+        require(!ordersCancelled[_id], "order is cancelled");
+        require(!ordersFilled[_id], "order is filled");
+
         _Order storage _order = orders[_id];
 
         require(_order.id == _id, "invalid id");
@@ -157,6 +161,9 @@ contract Exchange {
             _order.tokenGive,
             _order.amountGive
         );
+
+        // Mark order as filled
+        ordersFilled[_order.id] = true;
     }
 
     function _trade(
