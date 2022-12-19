@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { loadAccount, loadNetwork, loadProvider, loadTokens, loadExchange } from '../store/interactions';
+import { Navbar } from './';
 
 import config from '../config.json';
 
@@ -13,8 +14,14 @@ const App = () => {
       // Connect ethers to blockchain
       const provider = loadProvider(dispatch);
       const chainId = await loadNetwork(provider, dispatch);
-      
-      await loadAccount(provider, dispatch);
+
+      window.ethereum.on('chainChanged', () => {
+        window.location.reload();
+      });
+
+      window.ethereum.on('accountsChanged', () => {
+        loadAccount(provider, dispatch);
+      });
 
       const dappAddress = config[chainId].DApp.address;
       const mwethAddress = config[chainId].mWETH.address;
@@ -27,11 +34,9 @@ const App = () => {
     loadBlockchainData();
   }, [dispatch]);
 
-
-
   return (
     <div>
-      {/* Navbar */}
+      <Navbar />
       <main className='exchange grid'>
         <section className='exchange__section--left grid'>
           {/* Markets */}
