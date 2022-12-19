@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { loadAccount, loadNetwork, loadProvider, loadTokens, loadExchange } from '../store/interactions';
-import { Navbar } from './';
+import { Navbar, Markets } from './';
 
 import config from '../config.json';
 
@@ -39,7 +39,7 @@ const App = () => {
       <Navbar />
       <main className='exchange grid'>
         <section className='exchange__section--left grid'>
-          {/* Markets */}
+          <Markets />
           {/* Balance */}
           {/* Order */}
         </section>
