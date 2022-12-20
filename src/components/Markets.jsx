@@ -1,10 +1,12 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import config from '../config.json';
+import { loadTokens } from '../store/interactions';
 
 const Markets = () => {
-  const { chainId } = useSelector(({ provider }) => provider);
+  const dispatch = useDispatch();
+  const { chainId, connection: provider } = useSelector(({ provider }) => provider);
 
   let markets = [];
 
@@ -35,6 +37,10 @@ const Markets = () => {
     }
   }
 
+  const marketHandler = async ({ target: { value } }) => {
+    await loadTokens(provider, value.split(','), dispatch);
+  };
+
   return (
     <div className='component exchange__markets'>
       <div className='component__header'>
@@ -42,7 +48,11 @@ const Markets = () => {
       </div>
       {
         markets.length > 0 ? (
-          <select name='markets' id='markets'>
+          <select
+            name='markets'
+            id='markets'
+            onChange={marketHandler}
+          >
             {
               markets.map(({ primaryName, primaryAddress, secondaryName, secondaryAddress }) => (
                 <option
