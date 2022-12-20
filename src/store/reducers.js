@@ -34,7 +34,14 @@ const DEFAULT_TOKES_STATE = {
 export const tokens = (state = DEFAULT_TOKES_STATE, action) => {
   switch (action.type) {
     case 'TOKEN_LOADED':
-      if (state.symbols.includes(action.symbol)) return state;
+      if (state.contracts.length === 2) {
+        return {
+          ...state,
+          loaded: true,
+          contracts: [action.token],
+          symbols: [action.symbol]
+        }
+      }
       return {
         ...state,
         loaded: true,
