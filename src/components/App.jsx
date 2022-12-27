@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { loadAccount, loadNetwork, loadProvider, loadTokens, loadExchange } from '../store/interactions';
-import { Navbar, Markets } from './';
+import { loadAccount, loadNetwork, loadProvider, loadTokens, loadExchange, substribeToEvents } from '../store/interactions';
+import { Navbar, Markets, Balance } from './';
 
 import config from '../config.json';
 
@@ -27,8 +27,10 @@ const App = () => {
       const mwethAddress = config[chainId].mWETH.address;
       await loadTokens(provider, [dappAddress, mwethAddress], dispatch);
 
-      const exchangeAddress = config[chainId].exchange;
-      await loadExchange(provider, exchangeAddress, dispatch);
+      const exchangeAddress = config[chainId].exchange.address;
+      const exchange = await loadExchange(provider, exchangeAddress, dispatch);
+
+      substribeToEvents(exchange, dispatch);
     };
 
     loadBlockchainData();
@@ -40,7 +42,7 @@ const App = () => {
       <main className='exchange grid'>
         <section className='exchange__section--left grid'>
           <Markets />
-          {/* Balance */}
+          <Balance />
           {/* Order */}
         </section>
         <section className='exchange__section--right grid'>
