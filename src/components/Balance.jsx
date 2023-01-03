@@ -43,6 +43,21 @@ const Balance = () => {
     }
   };
 
+  const withdrawHandler = (event, tokenContract) => {
+    event.preventDefault();
+    console.log('here')
+
+    if (tokenContract === tokenContracts[0]) {
+      transferTokens(provider, exchangeContract, 'withdraw', tokenContracts[0], token0TransferAmount, dispatch);
+
+      setToken0TransferAmount(0);
+    } else {
+      transferTokens(provider, exchangeContract, 'withdraw', tokenContracts[1], token1TransferAmount, dispatch);
+
+      setToken1TransferAmount(0);
+    }
+  };
+
   const tabHandler = () => {
     setIsDeposit((prevValue) => !prevValue);
   }
@@ -79,7 +94,11 @@ const Balance = () => {
           </p>
         </div>
 
-        <form onSubmit={(event) => depositHandler(event, tokenContracts[0])}>
+        <form
+          onSubmit={(event) =>
+            isDeposit ? depositHandler(event, tokenContracts[0]) : withdrawHandler(event, tokenContracts[0])
+          }
+        >
           <label htmlFor="token0"></label>
           <input
             type="text"
@@ -118,7 +137,11 @@ const Balance = () => {
           </p>
         </div>
 
-        <form onSubmit={(event) => depositHandler(event, tokenContracts[1])}>
+        <form
+          onSubmit={(event) =>
+            isDeposit ? depositHandler(event, tokenContracts[1]) : withdrawHandler(event, tokenContracts[1])
+          }
+        >
           <label htmlFor="token1"></label>
           <input
             type="text"
