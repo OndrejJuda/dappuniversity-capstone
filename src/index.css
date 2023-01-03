@@ -533,7 +533,7 @@ input::placeholder {
 
   position: relative;
 
-  /* transition: all 250ms ease; */
+  transition: all 250ms ease;
 }
 
 .tab--active {

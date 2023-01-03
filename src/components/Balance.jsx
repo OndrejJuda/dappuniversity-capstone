@@ -3,11 +3,12 @@ import { useSelector, useDispatch } from 'react-redux';
 import { loadBalances, transferTokens } from '../store/interactions';
 
 import dapp from '../assets/dapp.svg';
+import eth from '../assets/eth.svg';
 
 const Balance = () => {
   const [token0TransferAmount, setToken0TransferAmount] = useState(0);
   const [token1TransferAmount, setToken1TransferAmount] = useState(0);
-
+  const [isDeposit, setIsDeposit] = useState(true);
 
   const dispatch = useDispatch();
   const { symbols, contracts: tokenContracts, balances: tokenBalances } = useSelector(({ tokens }) => tokens);
@@ -36,18 +37,23 @@ const Balance = () => {
 
       setToken0TransferAmount(0);
     } else {
+      transferTokens(provider, exchangeContract, 'deposit', tokenContracts[1], token1TransferAmount, dispatch);
 
       setToken1TransferAmount(0);
     }
   };
+
+  const tabHandler = () => {
+    setIsDeposit((prevValue) => !prevValue);
+  }
 
   return (
     <div className='component exchange__transfers'>
       <div className='component__header flex-between'>
         <h2>Balance</h2>
         <div className='tabs'>
-          <button className='tab tab--active'>Deposit</button>
-          <button className='tab'>Withdraw</button>
+          <button onClick={tabHandler} className={`tab ${isDeposit ? 'tab--active' : ''}`}>Deposit</button>
+          <button onClick={tabHandler} className={`tab ${isDeposit ? '' : 'tab--active'}`}>Withdraw</button>
         </div>
       </div>
 
@@ -78,13 +84,12 @@ const Balance = () => {
           <input
             type="text"
             id='token0'
-            placeholder='0.0000'
             onChange={(event) => amountHandler(event, tokenContracts[0])}
             value={token0TransferAmount}
           />
 
           <button className='button' type='submit'>
-            <span></span>
+            <span>{isDeposit ? 'Deposit' : 'Withdraw'}</span>
           </button>
         </form>
       </div>
@@ -98,7 +103,7 @@ const Balance = () => {
           <p>
             <small>Token</small>
             <br />
-            <img src={dapp} alt='Token logo' />
+            <img src={eth} alt='Token logo' />
             {symbols[1] ?? ''}
           </p>
           <p>
@@ -118,13 +123,12 @@ const Balance = () => {
           <input
             type="text"
             id='token1'
-            placeholder='0.0000'
             onChange={(event) => amountHandler(event, tokenContracts[1])}
             value={token1TransferAmount}
           />
 
           <button className='button' type='submit'>
-            <span></span>
+            <span>{isDeposit ? 'Deposit' : 'Withdraw'}</span>
           </button>
         </form>
       </div>

@@ -48,8 +48,6 @@ export const loadExchange = async (provider, address, dispatch) => {
 
 export const substribeToEvents = (exchange, dispatch) => {
   exchange.on('Deposit', (token, user, amount, balance, event) => {
-    console.log('')
-    console.log('Deposit event triggered:', event)
     dispatch({ type: 'TRANSFER_SUCCESS', event })
   });
 };
