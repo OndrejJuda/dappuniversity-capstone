@@ -45,7 +45,6 @@ const Balance = () => {
 
   const withdrawHandler = (event, tokenContract) => {
     event.preventDefault();
-    console.log('here')
 
     if (tokenContract === tokenContracts[0]) {
       transferTokens(provider, exchangeContract, 'withdraw', tokenContracts[0], token0TransferAmount, dispatch);
@@ -66,9 +65,9 @@ const Balance = () => {
     <div className='component exchange__transfers'>
       <div className='component__header flex-between'>
         <h2>Balance</h2>
-        <div className='tabs'>
-          <button onClick={tabHandler} className={`tab ${isDeposit ? 'tab--active' : ''}`}>Deposit</button>
-          <button onClick={tabHandler} className={`tab ${isDeposit ? '' : 'tab--active'}`}>Withdraw</button>
+        <div className='tabs' onClick={tabHandler}>
+          <button className={`tab ${isDeposit ? 'tab--active' : ''}`}>Deposit</button>
+          <button className={`tab ${isDeposit ? '' : 'tab--active'}`}>Withdraw</button>
         </div>
       </div>
 

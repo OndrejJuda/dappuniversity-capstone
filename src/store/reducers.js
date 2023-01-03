@@ -71,6 +71,7 @@ const DEFAULT_EXCHANGE_STATE = {
   balances: [],
   transaction: {},
   events: [],
+  allOrders: { data: [] },
 };
 
 export const exchange = (state = DEFAULT_EXCHANGE_STATE, action) => {
@@ -111,13 +112,58 @@ export const exchange = (state = DEFAULT_EXCHANGE_STATE, action) => {
           isSuccessful: true,
           isError: false,
         },
-        events: [...state.events, action.event ]
+        events: [...state.events, action.event]
       }
     case 'TRANSFER_FAIL':
       return {
         ...state,
         transaction: {
           transactionType: 'Transfer',
+          isPending: false,
+          isSuccessful: false,
+          isError: true,
+        },
+      }
+    case 'NEW_ORDER_REQUEST':
+      return {
+        ...state,
+        transaction: {
+          transactionType: 'New Order',
+          isPending: true,
+          isSuccessful: false,
+          isError: false,
+        },
+      }
+    case 'NEW_ORDER_SUCCESS':
+      // prevent duplicate orders
+      const index = state.allOrders.data.findIndex(({ id }) => id === action.orderId);
+
+      let data;
+      if (index === -1) {
+        data = [...state.allOrders.data, action.order];
+      } else {
+        data = state.allOrders.data;
+      }
+
+      return {
+        ...state,
+        transaction: {
+          transactionType: 'New Order',
+          isPending: false,
+          isSuccessful: true,
+          isError: false,
+        },
+        events: [...state.events, action.event],
+        allOrders: {
+          ...state.allOrders,
+          data
+        }
+      }
+    case 'NEW_ORDER_FAIL':
+      return {
+        ...state,
+        transaction: {
+          transactionType: 'New Order',
           isPending: false,
           isSuccessful: false,
           isError: true,
